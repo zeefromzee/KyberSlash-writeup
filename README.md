@@ -26,6 +26,33 @@ grep -n "KYBER_Q" poly.c | grep "/"
 ```bash
 grep -n -A 5 "poly_tomsg" poly.c
 ```
+ML-KEM offers parameter sets designed for NIST security levels 1, 3, and 5. For each security level, it uses fixed parameters q = 3329 and n = 256 that define the polynomial ring $\R_q = \Z_q[x]/ (x_n + 1)$, over which most of the operations are performed.
+
+### Kyber Encoding and Decoding
+
+Kyber uses an encoding procedure that allows it to recover the message even after some noise accumulates during encryption and decryption.
+
+It encodes a 256-bit message $m \in \mathbb{Z}_2^{256}$ into a polynomial in $R_q$ as:
+
+$$
+\text{Encode}(m) = m_0 + m_1 x + \cdots + m_{n-1} x^{n-1} \in R_q
+$$
+
+where:
+
+$$
+m_i = m[i] \cdot \left\lceil \frac{q}{2} \right\rceil
+$$
+
+In other words, if bit $m[i] = 0$, then $m_i = 0$; otherwise $m_i = \left\lceil \dfrac{q}{2} \right\rceil$.
+
+A simple decoding procedure can then be applied to a polynomial $m'$. Namely, the decoding function outputs a 256-bit message:
+
+$$
+m = \text{Decode}(m')
+$$
+
+from a noisy polynomial $m'$ by simply checking if each coefficient of $m'$ is closer to $0$ or to $\dfrac{q}{2}$, modulo $q$, and decoding it to $0$ or $1$, correspondingly.
 
 Here's the critical line:
 ```c
